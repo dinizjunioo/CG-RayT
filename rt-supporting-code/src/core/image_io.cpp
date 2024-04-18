@@ -1,6 +1,6 @@
 #define STB_IMAGE_WRITE_IMPLEMENTATION
 #include "image_io.h"
-#include <cstdbool>
+
 #include <fstream>
 #include <iostream>
 #include <iterator>

@@ -30,12 +30,14 @@ public:
   Background(mapping_t mt = mapping_t::spherical) : mapping_type{ mt } { /* empty */ }
 
   virtual ~Background(){ /* empty */ };
-  [[nodiscard]] Spectrum sampleXYZ(const Point2f& pixel_ndc) const;
+  [[nodiscard]] virtual Spectrum sampleXYZ(const Point2f& pixel_ndc) const = 0;
 };
 
 class BackgroundColor : public Background {
-private:
+
+
   /// Each corner has a color associated with.
+private:
   Spectrum corners[4] = {{0, 0, 0}, {0, 0, 0}, {0, 0, 0}, {0, 0, 0}};
   /// Corner indices.
   enum Corners_e {
@@ -43,26 +45,32 @@ private:
     tl,      //!< Top left corner.
     tr,      //!< Top right corner.
     br       //!< Bottom right corner.
-  };
+  } corn;
 
 public:
   /// Ctro receives a list of four colors, for each corner.
-  BackgroundColor(const std::vector<Spectrum> &colors) {
-     // Verifica se foram fornecidas as quatro cores esperadas
-    if (colors.size() != 4) {
-        throw std::invalid_argument("Fornecidas cores inválidas. São necessárias quatro cores.");
-    }
+  BackgroundColor() {
+    //Verifica se foram fornecidas as quatro cores esperadas
+    // if (colors.size() != 4) {
+    //     throw std::invalid_argument("Fornecidas cores inválidas. São necessárias quatro cores.");
+    // }
+    // if (colors.size() != 4) {
+    //     std::cerr << "Erro: A lista deve ter pelo menos 4 elementos." << std::endl;
+    //     return;
+    // }
 
     // Copia as cores fornecidas para os cantos correspondentes
-    for (auto i = 0; i < 4; ++i) {
-        corners[i] = colors[i];
-    }
+    // for (int i = 0; i < 4; ++i) {
+    //     corners[i] = colors.front();
+    //     cor.pop_front();
+    // }
   }
 
+  [[nodiscard]] virtual Spectrum sampleXYZ(const Point2f& pixel_ndc) const override;
   virtual ~BackgroundColor(){};
 };
 
 // factory pattern functions.
-BackgroundColor * create_color_background(const ParamSet& ps);
+BackgroundColor* create_color_background(const ParamSet& ps);
 }  // namespace rt3
 #endif
