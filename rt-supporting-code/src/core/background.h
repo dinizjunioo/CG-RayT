@@ -3,6 +3,7 @@
 
 #include "rt3-base.h"
 #include "rt3.h"
+#include <list>
 
 namespace rt3 {
 // TODO: Create a virtual class Background and derive BackgroundColor,
@@ -45,28 +46,35 @@ private:
     tl,      //!< Top left corner.
     tr,      //!< Top right corner.
     br       //!< Bottom right corner.
-  } corn;
+  };
 
 public:
   /// Ctro receives a list of four colors, for each corner.
-  BackgroundColor() {
-    //Verifica se foram fornecidas as quatro cores esperadas
-    // if (colors.size() != 4) {
-    //     throw std::invalid_argument("Fornecidas cores inválidas. São necessárias quatro cores.");
-    // }
-    // if (colors.size() != 4) {
-    //     std::cerr << "Erro: A lista deve ter pelo menos 4 elementos." << std::endl;
-    //     return;
-    // }
+  BackgroundColor(const std::list<Spectrum> &colours) 
+  {
+    if (colours.size() == 1) {
+      for (int i = 0; i < 4; ++i) {
+        corners[i] = colours.front();
+      }
+    } else if (colours.size() == 4) {
+      auto it = colours.begin();
+      for (int i = 0; i < 4; ++i) {      
+        corners[i] = *it;
+        it++;
+      }
+    }
 
-    // Copia as cores fornecidas para os cantos correspondentes
-    // for (int i = 0; i < 4; ++i) {
-    //     corners[i] = colors.front();
-    //     cor.pop_front();
-    // }
+    for (auto i=0; i < 4; i++)
+      std::clog << i<<"[" << corners[i][0] 
+      << " - " << corners[i][1] 
+      << " - " << corners[i][2] 
+      << "]\n";
   }
 
+  Spectrum addColor(const Color24& );
+  
   [[nodiscard]] virtual Spectrum sampleXYZ(const Point2f& pixel_ndc) const override;
+  
   virtual ~BackgroundColor(){};
 };
 

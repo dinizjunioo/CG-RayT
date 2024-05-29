@@ -14,7 +14,8 @@ public:
 };
 
 /// We must convert the base class object to the proper derived class object.
-template <typename T> class Value : public ValueBase {
+template <typename T> 
+class Value : public ValueBase {
 private:
   T m_value;  // The stored data.
 

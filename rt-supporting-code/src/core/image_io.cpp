@@ -39,6 +39,12 @@ bool save_ppm3(unsigned char* data, size_t w, size_t h, size_t d, const std::str
     return false;
   }
 
+  // std::cout << "Valores em data:\n";
+  // for (size_t i = 0; i < w * h * d; ++i) {
+  //       std::cout << static_cast<int>(data[i]) << " ";
+  //       if ((i + 1) % d == 0) std::cout << "| ";
+  // }
+
   ofs_file << "P3\n"
            << w << " " << h << "\n"
            << "255\n";
@@ -46,7 +52,7 @@ bool save_ppm3(unsigned char* data, size_t w, size_t h, size_t d, const std::str
   size_t i{ 0 };
   while (i < (w * h * d)) {
     // depth traversal, usually 3.
-    for (auto id{ 0u }; id < d; id++) {
+    for (auto id{ 0u }; id < d; ++id) {
       ofs_file << (int)*(data + i++) << " ";
     }
     ofs_file << '\n';

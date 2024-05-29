@@ -10,6 +10,12 @@
 #include "paramset.h"
 #include "rt3.h"
 
+//#include <iterator>
+//using std::begin;
+//using std::end;
+#include <type_traits>
+#include <typeinfo>
+
 // === Function Implementation
 
 namespace rt3 {
@@ -247,11 +253,21 @@ template <typename BASIC, typename COMPOSITE>
 bool parse_single_COMPOSITE_attrib(tinyxml2::XMLElement* p_element,
                                    rt3::ParamSet* ps,
                                    string att_key) {
+
+  
+  // ================================================================================
+  /// ATENTION APAGAR DEPOIS
+  // parse_single_COMPOSITE_attrib<uint8_t, Color24>(p_element, ps_out, name);
+  // BASIC -> uint8_t -> 0 a 255 | COMPOSITE -> Color24 -> array <uint_t, 3>
+  // ================================================================================
+
+
   // Attribute() returns the value of the attribute as a const char *, or
   // nullptr if such attribute does not exist.
   const char* att_value_cstr = p_element->Attribute(att_key.c_str());
   // Test whether the att_key exists.
   if (att_value_cstr) {
+    //if(att_key == "color") clog << typeid(BASIC).name() << "e uma cor e nao é nullptr existe um atributo!\n";
     // Create a temporary array to store all the BASIC data. (e.g. BASIC =
     // float) This read all the BASIC values into a single array.
     auto result = read_array<BASIC>(p_element, att_key);
@@ -264,14 +280,18 @@ bool parse_single_COMPOSITE_attrib(tinyxml2::XMLElement* p_element,
 
     // Values ok, get the value inside optional.
     vector<BASIC> values{ result.value() };
+    //if(att_key == "color") clog << values[0][1] << " ------ e \n";
+    
     // Get array length
     auto n_basic{ values.size() };  // How many?
     // Create the COMPOSITE value.
     COMPOSITE comp;
     if (n_basic == 2) {
-      comp = COMPOSITE{ values[0], values[1] };
+      comp = COMPOSITE{values[0], values[1], 0};
     } else if (n_basic == 3) {
       comp = COMPOSITE{ values[0], values[1], values[2] };
+      std::clog << "composite[" << values[0] << " - " << values[1] << " - " << values[2] << "]\n";
+    
     } else {
       return false;  // Invalid number of basic components.
     }
@@ -283,11 +303,11 @@ bool parse_single_COMPOSITE_attrib(tinyxml2::XMLElement* p_element,
     // Show message (DEBUG only, remove it or comment it out if code is
     // working).
     // --------------------------------------------------------------------------
-    clog << "\tAdded attribute (" << att_key << ": \"";
-    for (const auto& e : comp) {
-      clog << e << " ";
-    }
-    clog << "\")\n";
+    // clog << "\tAdded attribute (" << att_key << ": \"";
+    // for(const auto& e : comp) {
+    //   clog << e << " ";
+    // }
+    // clog << "\")\n";
     // --------------------------------------------------------------------------
 
     return true;
@@ -360,7 +380,7 @@ bool parse_array_COMPOSITE_attrib(tinyxml2::XMLElement* p_element,
         composit_list.push_back(
           COMPOSITE{ values[3 * i + 0], values[3 * i + 1], values[3 * i + 2] });
       } else {  // COMPOSITE_SIZE == 2
-        composit_list.push_back(COMPOSITE{ values[2 * i + 0], values[2 * i + 1] });
+        composit_list.push_back(COMPOSITE{ values[2 * i + 0], values[2 * i + 1], 0 });
       }
     }
 
@@ -372,13 +392,13 @@ bool parse_array_COMPOSITE_attrib(tinyxml2::XMLElement* p_element,
     // Show message (DEBUG only, remove it or comment it out if code is
     // working).
     // --------------------------------------------------------------------------
-    clog << "\tAdded attribute (" << att_key << ": \"";
-    for (const auto& e : composit_list) {
-      for (const auto& x : e) {
-        clog << x << " ";
-      }
-    }
-    clog << "\")\n";
+    // clog << "\tAdded attribute (" << att_key << ": \"";
+    // for (const auto& e : composit_list) {
+    //   //for (const auto& x : e) {
+    //   //}
+    //     clog << e << " ";
+    // }
+    // clog << "\")\n";
     // --------------------------------------------------------------------------
 
     return true;
@@ -410,12 +430,12 @@ bool parse_array_BASIC_attrib(tinyxml2::XMLElement* p_element, rt3::ParamSet* ps
     // Show message (DEBUG only, remove it or comment it out if code is
     // working).
     // --------------------------------------------------------------------------
-    clog << "\tAdded attribute (" << att_key << ": \"";
-    for (const auto& e : values) {
-      clog << e << " ";
-    }
-    clog << "\")\n";
-    // --------------------------------------------------------------------------
+    // clog << "\tAdded attribute (" << att_key << ": \"";
+    // for (const auto& e : values) {
+    //   clog << e << " ";
+    // }
+    // clog << "\")\n";
+    // // --------------------------------------------------------------------------
 
     return true;
   }
@@ -451,48 +471,77 @@ template <typename T>
 std::optional<std::vector<T>> read_array(tinyxml2::XMLElement* p_element, const string& att_key) {
   // outgoing list of values retrieved from the XML doc.
   vector<T> vec;
+
+  std::clog << typeid(T).name() << "\n";
   // C-style string that will store the attributes read from the XML doc.
   const char* value_cstr{ nullptr };
   // Retrieve the string value into the `value_str` C-style string. Ex. "1 2 3"
   p_element->QueryStringAttribute(att_key.c_str(), &value_cstr);
-
   // If query fails, return nothing.
   if (value_cstr == nullptr) {
     return std::nullopt;
   }
-
-  // ==========[ I might make this a function ]======================
-  // auto tokens = get_tokens(value_cstr);
-  // ----------------------------------------------------------------
   // Separate individual BASIC elements as tokens.
   string str(value_cstr);
+  std::clog << "value str --> " << str << "\n";
   std::stringstream tokenizer(str);
   std::vector<std::string> tokens;
   tokens.insert(tokens.begin(),
                 std::istream_iterator<std::string>(tokenizer),
                 std::istream_iterator<std::string>());
+
   //=====================================================================
-
   // Check whether we got at least one element.
-  if (!tokens.empty()) {
-    // Convert them to T and add them to the output vector.
-    for_each(tokens.begin(),
-             tokens.end(),
-             // Lambda expression to convert a string "value" to T (BASIC)
-             // value and then store it into a vector.
-             [&vec](const string& token) {
-               T value;
-               // =======================================================================
-               // RT3_WARNING: THIS DOES NOT WORK FOR BOOL VALUES!!!
-               // That's why we use string instead of bool in the XML file.
-               // =======================================================================
-               if (stringstream(token) >> value) {
-                 vec.push_back(value);
-               }
-             });
+  if (!tokens.empty()) 
+  {
+    // =======================================================================
+    // RT3_WARNING: THIS DOES NOT WORK FOR BOOL VALUES!!!
+    // That's why we use string instead of bool in the XML file.
+    // =======================================================================
+    for (const std::string& token : tokens) {
+        T value;
+   
+        if (std::stringstream(token) >> value) {
+            vec.push_back(value);
+            std::clog << "Added value to vec: " << value << "\n";
+        }
+    }
   }
-
   return vec;
+}
+
+// Sobrecarga para tratar caso específico de casting de int para uint8_t
+template<>
+std::optional<std::vector<uint8_t>> read_array(tinyxml2::XMLElement* p_element, const string& att_key) {
+  // outgoing list of values retrieved from the XML doc.
+  vector<uint8_t> vec;
+  // C-style string that will store the attributes read from the XML doc.
+  const char* value_cstr{ nullptr };
+  // Retrieve the string value into the `value_str` C-style string. Ex. "1 2 3"
+  p_element->QueryStringAttribute(att_key.c_str(), &value_cstr);
+  // If query fails, return nothing.
+  if (value_cstr == nullptr) {
+    return std::nullopt;
+  }
+  // Separate individual BASIC elements as tokens.
+  string str(value_cstr);
+  std::clog << "value str --> " << str << "\n";
+  std::stringstream tokenizer(str);
+  std::vector<std::string> tokens;
+  tokens.insert(tokens.begin(),
+                std::istream_iterator<std::string>(tokenizer),
+                std::istream_iterator<std::string>());
+
+
+    if (!tokens.empty()) {
+        for (const std::string& token : tokens) {
+            int value = 0;
+            if (std::istringstream(token) >> value) {
+                vec.push_back(static_cast<uint8_t>(value));
+            }
+        }
+    }
+    return vec;
 }
 
 template <typename T>

@@ -23,22 +23,22 @@ using std::tuple;
 # include <utility>
 
 // usaremos a biblioteca matematica glm 
-#include <glm/glm.hpp>
-glm::vec3 vec1{1.0f,0.0f,0.0f};
-
+#include <../glm/glm.hpp>
 //== Alias to the chosen data structure to implement a dictionary.
 // #define Dictionary std::unordered_map
 # define Dictionary std::map
 
 //=== Aliases
 namespace rt3 {
+
 /// ATENTION: This is just to compile the project. You need to implement
 /// Point3f!!!!
 // Alias to a Point3f (simulation)
-using Point3f = std::array<float, 3>;
 // Temporary Vec3, just to compile. TODO: Implement a real one!!!
+using Point3f = glm::vec3;
 using Vector3f = glm::vec3;
-using Color24 = std::array<uint8_t, 3>;
+using Color24 = std::array<uint8_t, 3UL>;
+//using Color24 = std::vector<glm::tvec3<uint8_t>>;
 using Spectrum = std::array<float, 3>;
 using Normal3f = std::array<float, 3>;
 using Ray = std::array<float, 3>;
@@ -46,9 +46,7 @@ using Ray = std::array<float, 3>;
 // List of points
 using ListPoint3f = std::vector<Point3f>;
 
-// Temporary Vec3i. TODO: code a real one.
-//glm::u8vec3;
-using Vector3i = glm::ivec3;
+using Vector3i = glm::vec3;
 using Point3i = std::array<int, 3>;
 using Point2i = std::array<int, 2>;
 using Point2f = std::array<float, 2>;
@@ -102,14 +100,25 @@ struct RunningOptions {
  * \return The interpolated value.
  */
 //
-inline float Lerp(float v1, float v2, float t) { return (1.F - t) * v1 + t * v2; }
 
-Spectrum LerpSpectrum(const Spectrum &A, const Spectrum &B, float t) {
-    // Aplica a interpolação linear nos componentes RGB de A e B
-    Spectrum result;
-    result[0] = static_cast<unsigned char>((1 - t) * A[0] + t * B[0]);
-    result[1] = static_cast<unsigned char>((1 - t) * A[1] + t * B[1]);
-    result[2] = static_cast<unsigned char>((1 - t) * A[2] + t * B[2]);
+//inline float Lerp(float v1, float v2, float t) { return (1.F - t) * v1 + t * v2; }
+
+// Spectrum LerpSpectrum(const Spectrum &A, const Spectrum &B, float t) {
+//     // Aplica a interpolação linear nos componentes RGB de A e B
+//     return Spectrum {
+//     static_cast<unsigned char>((1 - t) * A[0] + t * B[0]),
+//     static_cast<unsigned char>((1 - t) * A[1] + t * B[1]),
+//     static_cast<unsigned char>((1 - t) * A[2] + t * B[2])
+//     };
+// }
+
+template<typename T>
+T lerp(const T& A, const T& B, float t) {
+    // Aplica a interpolação linear nos componentes de A e B
+    T result;
+    for (size_t i = 0; i < A.size(); ++i) {
+        result[i] = static_cast<typename T::value_type>((1 - t) * A[i] + t * B[i]);
+    }
     return result;
 }
 

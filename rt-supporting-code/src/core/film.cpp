@@ -9,20 +9,53 @@ namespace rt3 {
 
 //=== Film Method Definitions
 Film::Film(const Point2i& resolution, const std::string& filename, image_type_e imgt)
-    : m_full_resolution{ resolution }, m_filename{ filename }, m_image_type{ imgt } {
-  // TODO
+    : m_full_resolution{ resolution }, m_filename{ filename }, m_image_type{ imgt },
+    image_data{ Matriz(resolution[0], resolution[1], 3)} {
+    
+    //Matriz * data{ nullptr };
+    //this->image_data{create_matriz(resolution)};
 }
 
 Film::~Film() = default;
 
 /// Add the color to image.
 void Film::add_sample(const Point2f& pixel_coord, const Color24& pixel_color) {
-  // TODO: add color to the proper location.
+  // add color to the proper location.
+  // image_data.getData()[] = pixel_color;
+  //std::cout << "[" << static_cast<int>(pixel_coord[0]) << " " << static_cast<int>(pixel_coord[1]);
+  //std::cout << " " << static_cast<int>(pixel_color[0])<< " " <<  static_cast<int>(pixel_color[1]) << " " << static_cast<int>(pixel_color[2]) << "\n";
+  image_data.setColor(static_cast<int>(pixel_coord[0]),static_cast<int>(pixel_coord[1]), 3, pixel_color);
 }
 
 /// Convert image to RGB, compute final pixel values, write image.
 void Film::write_image() const {
-  // TODO: call the proper writing function, either PPM or PNG.
+  
+  auto w = m_full_resolution[0];
+  auto h = m_full_resolution[1];
+  auto d = 3; // Assume que a profundidade da imagem é 3 (RGB)
+
+  auto ptr_color = image_data.getData();
+  uint8_t * ptr = &ptr_color[0][0];
+
+  switch (m_image_type) 
+  {
+    case image_type_e::PNG:
+      std::clog << "foto em png sendo criada...\n";
+      //reinterpret_cast<unsigned char*>
+      save_png(reinterpret_cast<unsigned char*>(ptr), w, h, d, m_filename);
+      break;
+    case image_type_e::PPM3:
+     std::clog << "foto em ppm3...\n";
+      save_ppm3(reinterpret_cast<unsigned char*>(ptr), w, h, d, m_filename);
+      break;
+    case image_type_e::PPM6:
+      save_ppm6(ptr, w, h, d, m_filename);
+      break;
+    default:
+      RT3_ERROR("Invalid image type specified");
+      break;
+  }
+
 }
 
 // Factory function pattern.
@@ -61,8 +94,13 @@ Film* create_film(const ParamSet& ps) {
     xres = std::max(1, xres / 4);
     yres = std::max(1, yres / 4);
   }
+  
+  std::string image_type = retrieve<string>(ps, "img_type", std::string{ "png"});
+  std::transform(image_type.begin(), image_type.end(), image_type.begin(), ::tolower);  
+  Film::image_type_e ite = Film::image_type_e::PNG;
+  if (image_type.compare("ppm3") == 0) {ite = Film::image_type_e::PPM3;}
+  else if (image_type.compare("ppm6") == 0) {ite = Film::image_type_e::PPM6;}
 
-  // TODO
   // Read crop window information.
   std::vector<real_type> cw = retrieve(ps, "crop_window", std::vector<real_type>{ 0, 1, 0, 1 });
   std::cout << "Crop window ";
@@ -72,6 +110,6 @@ Film* create_film(const ParamSet& ps) {
   std::cout << '\n';
 
   // Note that the image type is fixed here. Must be read from ParamSet, though.
-  return new Film(Point2i{ xres, yres }, filename, Film::image_type_e::PNG);
+  return new Film(Point2i{ xres, yres }, filename, ite);
 }
 }  // namespace rt3

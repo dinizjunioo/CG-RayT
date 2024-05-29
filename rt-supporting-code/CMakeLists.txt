@@ -9,18 +9,22 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS 1)
 
 #=== FINDING PACKAGES ===#
 
-# # find_package(TinyXml2 REQUIRED)
+#find_package(TinyXML2 REQUIRED)
+#find_package(glm REQUIRED)
 
 # Set "manually" paths that need to be considered while compiling/linking
 include_directories( cameras
                      integrators
                      core
-                     ext )
+                     ext 
+                     glm
+                     )
 
 #=== SETTING VARIABLES ===#
 # Compiling flags
 set( CMAKE_CXX_FLAGS  "${CMAKE_CXX_FLAGS} -Wall -pedantic" )
 set( RT3_SOURCE_DIR "src" )
+#set( GLM_SOURCE_DIR "glm" )
 
 #=== main  target ===
 add_executable(basic_rt3 ${RT3_SOURCE_DIR}/core/api.cpp
@@ -32,7 +36,11 @@ add_executable(basic_rt3 ${RT3_SOURCE_DIR}/core/api.cpp
                          ${RT3_SOURCE_DIR}/ext/lodepng.cpp
                          ${RT3_SOURCE_DIR}/ext/tinyxml2.cpp
                          ${RT3_SOURCE_DIR}/main/rt3.cpp
-                        )
+                         )
 
+# Adicione o diretório src/ext ao caminho de inclusão de cabeçalho
+target_include_directories(basic_rt3 PRIVATE ${RT3_SOURCE_DIR}/ext
+                                             ${RT3_SOURCE_DIR}/glm
+                                            )
 #define C++17 as the standard.
 set_property(TARGET basic_rt3 PROPERTY CXX_STANDARD 17)

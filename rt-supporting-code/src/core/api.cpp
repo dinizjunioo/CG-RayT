@@ -6,7 +6,42 @@
 
 namespace rt3 {
 
-void render() {}
+void render(const std::unique_ptr<RenderOptions>& render_opt,
+ const std::unique_ptr<Film> &film, 
+ const std::unique_ptr<Background>&background) 
+{
+  // Perform objects initialization here.
+  // The Film object holds the memory for the image.
+  
+  //if(rt3::retrieve<string>(render_opt.get()->film_ps, "img_type") == "ppm3")
+  //{
+    auto w = rt3::retrieve<int>(render_opt.get()->film_ps, "x_res"); // Retrieve the image dimensions in pixels.
+    auto h = rt3::retrieve<int>(render_opt.get()->film_ps, "y_res");
+    // Traverse all pixels to shoot rays from.
+
+    // coluna -> largura = w = i = 200
+    // linha -> altura = h = i = 100
+    //auto k = 0;
+    for ( int j =0; j < h; j++ ) {
+        for( int i = 0 ; i < w ; i++ ) {
+            // Not shooting rays just yet; so let us sample the background.
+            //auto color = background.sample( float(i)/float(w), float(j)/float(h) ); // get background color.
+            //camera.film.add( Point2{i,j}, color ); // set image buffer at position (i,j), accordingly.
+            //Spectrum color = background.get()->sampleXYZ(Point2f{{float(i) / (w   - 1), float(j) / (h - 1)}});
+            Spectrum color = background.get()->sampleXYZ(Point2f{{std::ceil(float(i)/(w)), std::ceil(float(j)/(h))}});
+
+            // if(k < 100)
+            //   std::cout << "["<< i << ","<< j << "]"<<static_cast<int>(color[0]) << " " << static_cast<int>(color[1]) << " "<< static_cast<int>(color[2]) << "\n";
+            // k++;
+            film.get()->add_sample(
+              Point2f{static_cast<float>(j),static_cast<float>(i)}, 
+              Color24{ static_cast<uint8_t>(color[0]), static_cast<uint8_t>(color[1]),static_cast<uint8_t>(color[2])}
+            );
+        }
+    }
+    // send image color buffer to the output file.
+    film.get()->write_image();
+}
 
 //=== API's static members declaration and initialization.
 API::APIState API::curr_state = APIState::Uninitialized;
@@ -107,7 +142,7 @@ void API::world_end() {
 
     //================================================================================
     auto start = std::chrono::steady_clock::now();
-    render();  // TODO: This is the ray tracer's  main loop.
+    render(render_opt, the_film, the_background);  // TODO: This is the ray tracer's  main loop.
     auto end = std::chrono::steady_clock::now();
     //================================================================================
     auto diff = end - start;  // Store the time difference between start and end

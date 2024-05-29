@@ -28,7 +28,7 @@ using std::copy;
 using std::stringstream;
 #include <iterator>
 using std::begin;
-using std::endl;
+using std::end;
 using std::istream_iterator;
 #include <vector>
 using std::vector;
@@ -39,7 +39,7 @@ using std::optional;
 
 #include "error.h"
 #include "paramset.h"
-
+#include <../glm/glm.hpp>
 namespace rt3 {
 
 // === Support functions
