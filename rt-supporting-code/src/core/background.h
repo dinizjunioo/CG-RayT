@@ -52,7 +52,7 @@ public:
   /// Ctro receives a list of four colors, for each corner.
   BackgroundColor(const std::list<Spectrum> &colours) 
   {
-    if (colours.size() == 1) {
+    if (colours.size() == 1) { 
       for (int i = 0; i < 4; ++i) {
         corners[i] = colours.front();
       }
@@ -64,11 +64,11 @@ public:
       }
     }
 
-    for (auto i=0; i < 4; i++)
-      std::clog << i<<"[" << corners[i][0] 
-      << " - " << corners[i][1] 
-      << " - " << corners[i][2] 
-      << "]\n";
+    //  for (auto i=0; i < 4; i++)
+    //    std::clog << i<<" --- CORES -->  [" << corners[i][0] 
+    //    << " - " << corners[i][1] 
+    //    << " - " << corners[i][2] 
+    //    << "]\n";
   }
 
   Spectrum addColor(const Color24& );

@@ -28,13 +28,17 @@ void render(const std::unique_ptr<RenderOptions>& render_opt,
             //auto color = background.sample( float(i)/float(w), float(j)/float(h) ); // get background color.
             //camera.film.add( Point2{i,j}, color ); // set image buffer at position (i,j), accordingly.
             //Spectrum color = background.get()->sampleXYZ(Point2f{{float(i) / (w   - 1), float(j) / (h - 1)}});
-            Spectrum color = background.get()->sampleXYZ(Point2f{{std::ceil(float(i)/(w)), std::ceil(float(j)/(h))}});
+            float u = float(i) / (w - 1);
+            float v = float(j) / (h - 1);
+            Spectrum color = background.get()->sampleXYZ(Point2f{{
+              //std::ceil(float(i)/(w)), std::ceil(float(j)/(h))
+              u,v}});
 
-            // if(k < 100)
-            //   std::cout << "["<< i << ","<< j << "]"<<static_cast<int>(color[0]) << " " << static_cast<int>(color[1]) << " "<< static_cast<int>(color[2]) << "\n";
-            // k++;
+            //  if(k < 100)
+            //    std::cout << "["<< i << ","<< j << "]"<<static_cast<int>(color[0]) << " " << static_cast<int>(color[1]) << " "<< static_cast<int>(color[2]) << "\n";
+            //  k++;
             film.get()->add_sample(
-              Point2f{static_cast<float>(j),static_cast<float>(i)}, 
+              Point2f{static_cast<float>(i),static_cast<float>(j)}, 
               Color24{ static_cast<uint8_t>(color[0]), static_cast<uint8_t>(color[1]),static_cast<uint8_t>(color[2])}
             );
         }

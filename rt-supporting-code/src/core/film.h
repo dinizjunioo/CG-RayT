@@ -29,7 +29,7 @@ public:
     //data(rows, std::vector<Color24>(cols)) 
     data(rows * cols , {255, 255, 0}) 
     { /* empty */ 
-      lerMatriz();
+      
     }
 
 
@@ -80,7 +80,7 @@ public:
   enum class image_type_e : int { PNG = 0, PPM3, PPM6 };
 
   //=== Film Public Methods
-  Film(const Point2i& resolution, const std::string& filename, image_type_e imgt);
+  Film(const Point2i& resolution, const std::string& filename, image_type_e imgt, bool gamma);
   virtual ~Film();
 
   /// Retrieve original Film resolution.
@@ -89,13 +89,17 @@ public:
   void add_sample(const Point2f&, const Color24&);
   void write_image() const;
 
+  // functions aux
+  void corrected_gamma(int h, int w, MtxColor&) const;
+  
   //=== Film Public Data
   const Point2i m_full_resolution;  //!< The image's full resolution values.
   std::string m_filename;           //!< Full path file name + extension.
   image_type_e m_image_type;        //!< Image type, PNG, PPM3, PPM6.
-
+  bool m_gamma_corrected;
   // TODO: Create the matrix (or vector) that will hold the image data.
-  Matriz image_data;
+private:
+  mutable Matriz image_data;
   
   // std::unique_ptr< ColorBuffer > m_color_buffer_ptr; //!< Reference to the
   // color buffer (image) object.

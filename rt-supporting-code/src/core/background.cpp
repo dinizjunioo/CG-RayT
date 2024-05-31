@@ -10,11 +10,12 @@ namespace rt3 {
  */
 Spectrum BackgroundColor::sampleXYZ(const Point2f& pixel_ndc) const 
 {
-  //
+  
+  
   // Interpolação linear horizontal entre os cantos inferiores (bl e br)
-  Spectrum bottom = rt3::lerp(corners[bl], corners[br], pixel_ndc[0]);
+  Spectrum bottom = rt3::lerp(corners[0], corners[3], pixel_ndc[0]);
   // Interpolação linear horizontal entre os cantos superiores (tl e tr)
-  Spectrum top    = rt3::lerp(corners[tl], corners[tr], pixel_ndc[0]);
+  Spectrum top    = rt3::lerp(corners[1], corners[2], pixel_ndc[0]);
 
   // Interpolação linear vertical entre as cores interpoladas horizontalmente
   return Spectrum{rt3::lerp(bottom, top, pixel_ndc[1])};
@@ -22,6 +23,7 @@ Spectrum BackgroundColor::sampleXYZ(const Point2f& pixel_ndc) const
 
 Spectrum addColor(const Color24& colour)
 {
+  //colour[0] < 1.0f ? colour[0] * 255.0f : colour[0];
   return {
         static_cast<float>(colour[0]),
         static_cast<float>(colour[1]),
@@ -41,18 +43,23 @@ BackgroundColor * create_color_background(const ParamSet& ps)
     // Converte os valores de cor para RGBColor
     colours.push_back(addColor(color_value));
 
-  }else{
+  } else {
+    std::cout << "entrei nos bl's " << std::endl;
+     Color24 color_value = {0, 255, 0};
     if(ps.find("bl") != ps.end()){
-      Color24 color_value = rt3::retrieve<Color24>(ps, "bl", {0, 255, 0}); // Obtém os valores de cor, padrão verde
+      color_value = rt3::retrieve<Color24>(ps, "bl", {0, 255, 0}); // Obtém os valores de cor, padrão verde
       colours.push_back(addColor(color_value));
-    } else if (ps.find("tr") != ps.end()) {
-      Color24 color_value = rt3::retrieve<Color24>(ps, "tr", {0, 255, 0});
+    }
+    if (ps.find("tr") != ps.end()) {
+      color_value = rt3::retrieve<Color24>(ps, "tr", {0, 255, 0});
       colours.push_back(addColor(color_value));
-    } else if (ps.find("tl") != ps.end()) {
-      Color24 color_value = rt3::retrieve<Color24>(ps, "tl", {0, 255, 0});
+    } 
+    if (ps.find("tl") != ps.end()) {
+      color_value = rt3::retrieve<Color24>(ps, "tl", {0, 255, 0});
       colours.push_back(addColor(color_value));
-    } else if (ps.find("br") != ps.end()) {
-      Color24 color_value = rt3::retrieve<Color24>(ps, "br", {0, 255, 0});
+    } 
+    if (ps.find("br") != ps.end()) {
+      color_value = rt3::retrieve<Color24>(ps, "br", {0, 255, 0});
       colours.push_back(addColor(color_value));
     }
   }

@@ -68,8 +68,9 @@ bool save_ppm3(unsigned char* data, size_t w, size_t h, size_t d, const std::str
 
 bool save_png(unsigned char* data, size_t w, size_t h, size_t d, const std::string& file_name_) {
 #define LODEPNG
-#ifdef LODEPNG
+#ifndef LODEPNG
   std::cout << "depth = " << d << '\n';
+  d += 1;
   std::vector<unsigned char> img;  //( w * h * d );
   std::copy(data, data + (w * h * d), std::back_inserter(img));
   // Encode from raw pixels to disk with a single function call
@@ -108,6 +109,9 @@ bool save_png(unsigned char* data, size_t w, size_t h, size_t d, const std::stri
   // for more compression
   //
   stbi_write_png_compression_level = 0;  // defaults to 8; set to higher for more compression
+  //d+=1;
+
+  std::cerr << "entrei no else" << "\n";
   return (0
           != stbi_write_png(file_name_.c_str(),  // file name
                             w,

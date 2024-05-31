@@ -14,7 +14,6 @@ using std::array;
 # include <map>
 # include <stack>
 # include <string>
-
 # include <unordered_map>
 using std::string;
 # include <algorithm>
@@ -66,6 +65,7 @@ class Film;
 class Background;
 class BackgroundColor;
 class Camera;
+// class LookAt
 
 //=== aliases
 using real_type = float;
@@ -101,16 +101,7 @@ struct RunningOptions {
  */
 //
 
-//inline float Lerp(float v1, float v2, float t) { return (1.F - t) * v1 + t * v2; }
-
-// Spectrum LerpSpectrum(const Spectrum &A, const Spectrum &B, float t) {
-//     // Aplica a interpolação linear nos componentes RGB de A e B
-//     return Spectrum {
-//     static_cast<unsigned char>((1 - t) * A[0] + t * B[0]),
-//     static_cast<unsigned char>((1 - t) * A[1] + t * B[1]),
-//     static_cast<unsigned char>((1 - t) * A[2] + t * B[2])
-//     };
-// }
+inline float Lerp(float v1, float v2, float t) { return (1.F - t) * v1 + t * v2; }
 
 template<typename T>
 T lerp(const T& A, const T& B, float t) {
@@ -139,5 +130,14 @@ inline float Radians(float deg) { return ((float)M_PI / 180.F) * deg; }
 /// Radians to degreees.
 inline float Degrees(float rad) { return (180.F / (float)M_PI) * rad; }
 }  // namespace rt3
+
+// Spectrum LerSpectrum(const Spectrum &A, const Spectrum &B, float t) {
+//     // Aplica a interpolação linear nos componentes RGB de A e B
+//     return Spectrum {
+//     (1 - t) * A[0] + t * B[0],
+//     (1 - t) * A[1] + t * B[1],
+//     (1 - t) * A[2] + t * B[2]
+//     };
+// }
 
 #endif  // RT3_H

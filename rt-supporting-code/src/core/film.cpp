@@ -8,9 +8,9 @@
 namespace rt3 {
 
 //=== Film Method Definitions
-Film::Film(const Point2i& resolution, const std::string& filename, image_type_e imgt)
+Film::Film(const Point2i& resolution, const std::string& filename, image_type_e imgt, bool gamma)
     : m_full_resolution{ resolution }, m_filename{ filename }, m_image_type{ imgt },
-    image_data{ Matriz(resolution[0], resolution[1], 3)} {
+    m_gamma_corrected{gamma}, image_data{ Matriz(resolution[1], resolution[0], 3)} {
     
     //Matriz * data{ nullptr };
     //this->image_data{create_matriz(resolution)};
@@ -27,14 +27,38 @@ void Film::add_sample(const Point2f& pixel_coord, const Color24& pixel_color) {
   image_data.setColor(static_cast<int>(pixel_coord[0]),static_cast<int>(pixel_coord[1]), 3, pixel_color);
 }
 
+void Film::corrected_gamma(int h, int w, MtxColor& ptr_color)const
+{
+  std::cout << "entrei no gamma " << "\n";
+  // Aplicar a correção de gama à imagem antes de salvá-la
+  constexpr double gamma = 2.2; // Valor de correção de ga
+  for (auto j = 0; j < h; j++) {
+      for (auto i = 0; i < w; i++) {
+          // Obter o pixel atual
+          Color24& pixel = ptr_color[j * w + i];
+          // Aplicar a correção de gama a cada componente de cor do pixel
+          for (int c = 0; c < 3; c++) {
+              pixel[c] = std::pow(pixel[c] / 255.0, 1.0 / gamma) * 255.0;
+          }
+      }
+  }
+}
+
+
 /// Convert image to RGB, compute final pixel values, write image.
 void Film::write_image() const {
   
+  //image_data.lerMatriz();
   auto w = m_full_resolution[0];
   auto h = m_full_resolution[1];
   auto d = 3; // Assume que a profundidade da imagem é 3 (RGB)
 
   auto ptr_color = image_data.getData();
+  
+  if (m_gamma_corrected) {
+    corrected_gamma(h, w, ptr_color);     
+  }
+
   uint8_t * ptr = &ptr_color[0][0];
 
   switch (m_image_type) 
@@ -49,7 +73,7 @@ void Film::write_image() const {
       save_ppm3(reinterpret_cast<unsigned char*>(ptr), w, h, d, m_filename);
       break;
     case image_type_e::PPM6:
-      save_ppm6(ptr, w, h, d, m_filename);
+      save_ppm6(reinterpret_cast<unsigned char*>(ptr), w, h, d, m_filename);
       break;
     default:
       RT3_ERROR("Invalid image type specified");
@@ -95,6 +119,8 @@ Film* create_film(const ParamSet& ps) {
     yres = std::max(1, yres / 4);
   }
   
+  bool gamma = retrieve<std::string>(ps, "gamma_corrected") == "yes" ? true : false;
+  std::cout << "gamma -->" << gamma << "\n";
   std::string image_type = retrieve<string>(ps, "img_type", std::string{ "png"});
   std::transform(image_type.begin(), image_type.end(), image_type.begin(), ::tolower);  
   Film::image_type_e ite = Film::image_type_e::PNG;
@@ -110,6 +136,6 @@ Film* create_film(const ParamSet& ps) {
   std::cout << '\n';
 
   // Note that the image type is fixed here. Must be read from ParamSet, though.
-  return new Film(Point2i{ xres, yres }, filename, ite);
+  return new Film(Point2i{ xres, yres }, filename, ite, gamma);
 }
 }  // namespace rt3

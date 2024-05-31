@@ -267,10 +267,17 @@ bool parse_single_COMPOSITE_attrib(tinyxml2::XMLElement* p_element,
   const char* att_value_cstr = p_element->Attribute(att_key.c_str());
   // Test whether the att_key exists.
   if (att_value_cstr) {
-    //if(att_key == "color") clog << typeid(BASIC).name() << "e uma cor e nao é nullptr existe um atributo!\n";
+    if(att_key == "color") clog << typeid(BASIC).name() << "e uma cor e nao é nullptr existe um atributo!\n";
     // Create a temporary array to store all the BASIC data. (e.g. BASIC =
     // float) This read all the BASIC values into a single array.
     auto result = read_array<BASIC>(p_element, att_key);
+    if(att_key == "color"){
+      for (uint8_t value : result.value()) {
+        // Faça algo com cada valor
+        std::cout << static_cast<int>(value) << "\n";
+    }
+    }
+    //std::cout << "array - color " << result.value() << "\n";
     // Error check
     if (not result.has_value()) {
       RT3_ERROR(string{ "parse_single_COMPOSITE_attrib(): could not read values "
@@ -280,7 +287,7 @@ bool parse_single_COMPOSITE_attrib(tinyxml2::XMLElement* p_element,
 
     // Values ok, get the value inside optional.
     vector<BASIC> values{ result.value() };
-    //if(att_key == "color") clog << values[0][1] << " ------ e \n";
+    // if(att_key == "color") std::cout << "-> " << static_cast<int>(values.back()) << " <------ e \n";
     
     // Get array length
     auto n_basic{ values.size() };  // How many?
@@ -534,11 +541,19 @@ std::optional<std::vector<uint8_t>> read_array(tinyxml2::XMLElement* p_element, 
 
 
     if (!tokens.empty()) {
-        for (const std::string& token : tokens) {
-            int value = 0;
-            if (std::istringstream(token) >> value) {
-                vec.push_back(static_cast<uint8_t>(value));
-            }
+        for (const std::string& token : tokens)
+        {
+          
+                // Tenta converter para inteiro
+                float float_int_value = 0.0f;
+                std::stringstream ss( token );
+                ss >> float_int_value;
+                
+                float_int_value <= 1.0f ? (float_int_value = float_int_value * 255.0f) : float_int_value;
+
+                vec.push_back(static_cast<uint8_t>(float_int_value));
+                std::clog << "Added value to vec: " << float_int_value << " (int)\n";
+          
         }
     }
     return vec;
