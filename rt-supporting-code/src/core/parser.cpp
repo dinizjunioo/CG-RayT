@@ -93,10 +93,8 @@ void parse_tags(tinyxml2::XMLElement* p_element, int level) {
                                                       // along the shorter image axis, and its set
                                                       // proportionally along the longer axis.
       };
-
       parse_parameters(p_element, param_list, /* out */ &ps);
-
-      // API::camera(ps);
+      API::camera(ps);
     } else if (tag_name == "background") {
       ParamSet ps;
       vector<std::pair<param_type_e, string>> param_list{
@@ -127,13 +125,16 @@ void parse_tags(tinyxml2::XMLElement* p_element, int level) {
 
       API::film(ps);
     } else if (tag_name == "lookat") {
+      std::cout << "";
       ParamSet ps;
-      vector<std::pair<param_type_e, string>> param_list{ { param_type_e::POINT3F, "look_from" },
-                                                          { param_type_e::POINT3F, "look_at" },
-                                                          { param_type_e::VEC3F, "up" } };
-
+      vector<std::pair<param_type_e, string>> param_list{ 
+        { param_type_e::POINT3F, "look_from" },
+        { param_type_e::POINT3F, "look_at" },
+        { param_type_e::VEC3F, "up" } 
+      };
       parse_parameters(p_element, param_list, /* out */ &ps);
-      // API::look_at(ps);
+      
+      API::look_at(ps);
     } else if (tag_name == "world_begin") {
       // std::clog << ">>> Entering WorldBegin, at level " << level+1 <<
       // std::endl;
@@ -267,16 +268,16 @@ bool parse_single_COMPOSITE_attrib(tinyxml2::XMLElement* p_element,
   const char* att_value_cstr = p_element->Attribute(att_key.c_str());
   // Test whether the att_key exists.
   if (att_value_cstr) {
-    if(att_key == "color") clog << typeid(BASIC).name() << "e uma cor e nao é nullptr existe um atributo!\n";
+    //if(att_key == "color") clog << typeid(BASIC).name() << "e uma cor e nao é nullptr existe um atributo!\n";
     // Create a temporary array to store all the BASIC data. (e.g. BASIC =
     // float) This read all the BASIC values into a single array.
     auto result = read_array<BASIC>(p_element, att_key);
-    if(att_key == "color"){
-      for (uint8_t value : result.value()) {
-        // Faça algo com cada valor
-        std::cout << static_cast<int>(value) << "\n";
-    }
-    }
+    // if(att_key == "color"){
+    //   for (uint8_t value : result.value()) {
+    //     // Faça algo com cada valor
+    //     std::cout << static_cast<int>(value) << "\n";
+    // }
+    // }
     //std::cout << "array - color " << result.value() << "\n";
     // Error check
     if (not result.has_value()) {
@@ -479,7 +480,7 @@ std::optional<std::vector<T>> read_array(tinyxml2::XMLElement* p_element, const 
   // outgoing list of values retrieved from the XML doc.
   vector<T> vec;
 
-  std::clog << typeid(T).name() << "\n";
+  //std::clog << typeid(T).name() << "\n";
   // C-style string that will store the attributes read from the XML doc.
   const char* value_cstr{ nullptr };
   // Retrieve the string value into the `value_str` C-style string. Ex. "1 2 3"
@@ -490,7 +491,6 @@ std::optional<std::vector<T>> read_array(tinyxml2::XMLElement* p_element, const 
   }
   // Separate individual BASIC elements as tokens.
   string str(value_cstr);
-  std::clog << "value str --> " << str << "\n";
   std::stringstream tokenizer(str);
   std::vector<std::string> tokens;
   tokens.insert(tokens.begin(),
@@ -510,7 +510,7 @@ std::optional<std::vector<T>> read_array(tinyxml2::XMLElement* p_element, const 
    
         if (std::stringstream(token) >> value) {
             vec.push_back(value);
-            std::clog << "Added value to vec: " << value << "\n";
+            //std::clog << "Added value to vec: " << value << "\n";
         }
     }
   }
@@ -532,7 +532,6 @@ std::optional<std::vector<uint8_t>> read_array(tinyxml2::XMLElement* p_element, 
   }
   // Separate individual BASIC elements as tokens.
   string str(value_cstr);
-  std::clog << "value str --> " << str << "\n";
   std::stringstream tokenizer(str);
   std::vector<std::string> tokens;
   tokens.insert(tokens.begin(),
@@ -552,7 +551,7 @@ std::optional<std::vector<uint8_t>> read_array(tinyxml2::XMLElement* p_element, 
                 float_int_value <= 1.0f ? (float_int_value = float_int_value * 255.0f) : float_int_value;
 
                 vec.push_back(static_cast<uint8_t>(float_int_value));
-                std::clog << "Added value to vec: " << float_int_value << " (int)\n";
+               // std::clog << "Added value to vec: " << float_int_value << " (int)\n";
           
         }
     }

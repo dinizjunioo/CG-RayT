@@ -64,5 +64,7 @@ BackgroundColor * create_color_background(const ParamSet& ps)
     }
   }
     return new BackgroundColor(colours);
+    // não precisa de -> return std::make_unique<BackgroundColor>(colours);
+    // retornando um ponteiro cru para o std unique e ele gerencia e destroi automaticamente
 }
 }  // namespace rt3

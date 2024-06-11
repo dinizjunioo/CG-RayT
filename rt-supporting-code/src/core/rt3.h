@@ -40,7 +40,7 @@ using Color24 = std::array<uint8_t, 3UL>;
 //using Color24 = std::vector<glm::tvec3<uint8_t>>;
 using Spectrum = std::array<float, 3>;
 using Normal3f = std::array<float, 3>;
-using Ray = std::array<float, 3>;
+//using Ray = std::array<float, 3>;
 
 // List of points
 using ListPoint3f = std::vector<Point3f>;
@@ -65,13 +65,14 @@ class Film;
 class Background;
 class BackgroundColor;
 class Camera;
-// class LookAt
+class Ray;
+// class LookAt;
 
 //=== aliases
 using real_type = float;
 using size_type = size_t;
 using result_type = std::tuple<bool, std::string>;
-
+using arr_real_type = std::vector<real_type>;
 /// This struct holds information provided via command line arguments
 struct RunningOptions {
   // An alias template for a two-dimensional std::array
@@ -129,6 +130,18 @@ inline float Radians(float deg) { return ((float)M_PI / 180.F) * deg; }
 
 /// Radians to degreees.
 inline float Degrees(float rad) { return (180.F / (float)M_PI) * rad; }
+
+template<typename T>
+inline T normalize (const T& v, const T& u ){ return glm::cross(v,u);}
+template<typename T>
+inline void normalize (T& w){ w = glm::cross(w);}
+
+template<typename T, typename U>
+auto prod_escalar(const T& scalar, const U& vector) {
+    using ResultType = decltype(scalar * vector.x);
+    return ResultType(scalar * vector.x, scalar * vector.y, scalar * vector.z);
+}
+
 }  // namespace rt3
 
 // Spectrum LerSpectrum(const Spectrum &A, const Spectrum &B, float t) {

@@ -1,42 +1,54 @@
 #include "api.h"
 #include "background.h"
+#include "camera.h"
 
 #include <chrono>
 #include <memory>
 
 namespace rt3 {
 
+/**
+ * @brief 
+ * 
+ * @param render_opt 
+ * @param film 
+ * @param background 
+ */
+
+/* --- 
+// Traverse all pixels to shoot rays from.
+    // coluna -> largura = w = i = 200
+    // linha -> altura = h = i = 100
+    // auto k = 0;
+*/
 void render(const std::unique_ptr<RenderOptions>& render_opt,
- const std::unique_ptr<Film> &film, 
- const std::unique_ptr<Background>&background) 
+const std::unique_ptr<Film> &film, 
+const std::unique_ptr<Background>&background,
+const std::unique_ptr<Camera>&camera) 
 {
   // Perform objects initialization here.
   // The Film object holds the memory for the image.
-  
-  //if(rt3::retrieve<string>(render_opt.get()->film_ps, "img_type") == "ppm3")
-  //{
-    auto w = rt3::retrieve<int>(render_opt.get()->film_ps, "x_res"); // Retrieve the image dimensions in pixels.
-    auto h = rt3::retrieve<int>(render_opt.get()->film_ps, "y_res");
-    // Traverse all pixels to shoot rays from.
-
-    // coluna -> largura = w = i = 200
-    // linha -> altura = h = i = 100
-    //auto k = 0;
+    //auto w = rt3::retrieve<int>(render_opt.get()->film_ps, "x_res"); // Retrieve the image dimensions in pixels.
+    //auto h = rt3::retrieve<int>(render_opt.get()->film_ps, "y_res");
+    auto w = film.get()->m_full_resolution[0];
+    auto h = film.get()->m_full_resolution[1];
     for ( int j =0; j < h; j++ ) {
         for( int i = 0 ; i < w ; i++ ) {
             // Not shooting rays just yet; so let us sample the background.
             //auto color = background.sample( float(i)/float(w), float(j)/float(h) ); // get background color.
             //camera.film.add( Point2{i,j}, color ); // set image buffer at position (i,j), accordingly.
             //Spectrum color = background.get()->sampleXYZ(Point2f{{float(i) / (w   - 1), float(j) / (h - 1)}});
+            
             float u = float(i) / (w - 1);
             float v = float(j) / (h - 1);
+            
+            Ray r = camera.get()->generate_ray(u,v);
+
+            r(2.0f);
             Spectrum color = background.get()->sampleXYZ(Point2f{{
               //std::ceil(float(i)/(w)), std::ceil(float(j)/(h))
               u,v}});
 
-            //  if(k < 100)
-            //    std::cout << "["<< i << ","<< j << "]"<<static_cast<int>(color[0]) << " " << static_cast<int>(color[1]) << " "<< static_cast<int>(color[2]) << "\n";
-            //  k++;
             film.get()->add_sample(
               Point2f{static_cast<float>(i),static_cast<float>(j)}, 
               Color24{ static_cast<uint8_t>(color[0]), static_cast<uint8_t>(color[1]),static_cast<uint8_t>(color[2])}
@@ -72,6 +84,20 @@ Background* API::make_background(const std::string& name, const ParamSet& ps) {
 
   // Return the newly created background.
   return bkg;
+}
+
+Camera * API::make_camera(const std::string& name, const ParamSet& ps) {
+  std::cout << ">>> Inside API::camera()\n";
+  Camera * cam{ nullptr };
+  if(name == "perspective"){
+    cam = create_camera_perspective(ps);
+  }else if(name == "orthographic"){
+    cam = create_camera_orthographic(ps);
+    std::cout << cam->look_at.length() << "teste camera \n";
+  }
+
+  // Return the newly created camera.
+  return cam;
 }
 
 // ˆˆˆˆˆˆˆˆˆˆˆˆˆˆˆˆˆˆˆˆˆˆˆˆˆˆˆˆˆˆˆˆˆˆˆˆˆˆˆˆˆˆˆˆˆˆˆˆˆˆˆˆˆˆˆˆˆˆˆˆˆˆˆˆˆˆˆˆˆˆˆˆ
@@ -131,8 +157,11 @@ void API::world_end() {
   // Same with the film, that later on will belong to a camera object.
   std::unique_ptr<Film> the_film{ make_film(render_opt->film_type, render_opt->film_ps) };
 
-  // Run only if we got film and background.
-  if (the_film and the_background) {
+  // Same with the film, that later on will belong to a camera object.
+  std::unique_ptr<Camera> the_camera{ make_camera(render_opt->camera_type, render_opt->camera_ps) };
+
+  // Run only if we got film and background and camera.
+  if (the_film and the_background and the_camera) {
     RT3_MESSAGE("    Parsing scene successfuly done!\n");
     RT3_MESSAGE("[2] Starting ray tracing progress.\n");
 
@@ -146,7 +175,7 @@ void API::world_end() {
 
     //================================================================================
     auto start = std::chrono::steady_clock::now();
-    render(render_opt, the_film, the_background);  // TODO: This is the ray tracer's  main loop.
+    render(render_opt, the_film, the_background, the_camera);  // TODO: This is the ray tracer's  main loop.
     auto end = std::chrono::steady_clock::now();
     //================================================================================
     auto diff = end - start;  // Store the time difference between start and end
@@ -191,6 +220,36 @@ void API::film(const ParamSet& ps) {
   std::string type = retrieve(ps, "type", string{ "unknown" });
   render_opt->film_type = type;
   render_opt->film_ps = ps;
+}
+
+void API::look_at(const ParamSet& ps) {
+  std::cout << ">>> Inside API::look_at()\n";
+  VERIFY_SETUP_BLOCK("API::look_at");  
+
+  for (const auto& entry : ps) {
+    render_opt->camera_ps[entry.first] = entry.second;
+  }
+
+}
+
+void API::camera(const ParamSet& ps) {
+  std::cout << ">>> Inside API::camera()\n";
+  VERIFY_SETUP_BLOCK("API::camera");
+
+  // retrieve type from ps.
+  std::string type = retrieve(ps, "type", string{ "unknown" });
+  // Adiciona os dados do ParamSet ps ao ParamSet da câmera
+  for (const auto& entry : ps) {
+    render_opt->camera_ps[entry.first] = entry.second;
+  }
+  
+  render_opt->camera_type = type;
+  //render_opt->camera_ps = ps;
+
+  for (const auto& entry : ps){
+    std::cout << "Key: " << entry.first << ", Value: \n";
+  }
+
 }
 
 }  // namespace rt3

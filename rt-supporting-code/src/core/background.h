@@ -4,7 +4,6 @@
 #include "rt3-base.h"
 #include "rt3.h"
 #include <list>
-
 namespace rt3 {
 // TODO: Create a virtual class Background and derive BackgroundColor,
 // BackgroundSphereImage, BackgroundSkyBoxImage.
@@ -50,7 +49,7 @@ private:
 
 public:
   /// Ctro receives a list of four colors, for each corner.
-  BackgroundColor(const std::list<Spectrum> &colours) 
+  BackgroundColor(const std::list<Spectrum> &colours)  //: Background(mapping_t::screen)
   {
     if (colours.size() == 1) { 
       for (int i = 0; i < 4; ++i) {
@@ -71,7 +70,7 @@ public:
     //    << "]\n";
   }
 
-  Spectrum addColor(const Color24& );
+  friend Spectrum addColor(const Color24& );
   
   [[nodiscard]] virtual Spectrum sampleXYZ(const Point2f& pixel_ndc) const override;
   

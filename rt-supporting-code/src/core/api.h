@@ -92,7 +92,7 @@ private:
   static Film *make_film(const string &name, const ParamSet &ps);
   static Background *make_background(const string &name, const ParamSet &ps);
   static Camera *make_camera(const string &name, const ParamSet &ps);
-
+  
 public:
   //=== API function begins here.
   static void init_engine(const RunningOptions &);
@@ -102,6 +102,7 @@ public:
 
   static void film(const ParamSet &ps);
   static void camera(const ParamSet &ps);
+  static void look_at(const ParamSet &ps);
   static void background(const ParamSet &ps);
   static void world_begin();
   static void world_end();
