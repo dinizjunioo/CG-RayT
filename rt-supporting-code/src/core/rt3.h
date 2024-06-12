@@ -114,6 +114,30 @@ T lerp(const T& A, const T& B, float t) {
     return result;
 }
 
+template<typename T>
+T sphericalMap(const T& A, const T& B, float u, float v) {
+    // Converte u e v em coordenadas esféricas
+    float phi = u * 2 * M_PI;
+    float theta = v * M_PI;
+
+    // Converte coordenadas esféricas em coordenadas cartesianas
+    float x = sin(theta) * cos(phi);
+    float y = cos(theta);
+    float z = sin(theta) * sin(phi);
+
+    // Mapeia coordenadas cartesianas para o intervalo [0, 1]
+    float mappedU = (x + 1) / 2; // Mapeamento para o intervalo [0, 1]
+    float mappedV = (y + 1) / 2; // Mapeamento para o intervalo [0, 1]
+
+    // Aplica a interpolação linear nos componentes de A e B
+    T result;
+    for (size_t i = 0; i < A.size(); ++i) {
+        result[i] = static_cast<typename T::value_type>((1 - mappedU) * A[i] + mappedU * B[i]);
+    }
+    return result;
+}
+
+
 /// Clamp T to [low,high].
 template <typename T, typename U, typename V> inline T Clamp(T val, U low, V high) {
   if (val < low) {
@@ -131,16 +155,16 @@ inline float Radians(float deg) { return ((float)M_PI / 180.F) * deg; }
 /// Radians to degreees.
 inline float Degrees(float rad) { return (180.F / (float)M_PI) * rad; }
 
-template<typename T>
-inline T normalize (const T& v, const T& u ){ return glm::cross(v,u);}
-template<typename T>
-inline void normalize (T& w){ w = glm::cross(w);}
+// template<typename T>
+// inline T normalize (const T& v, const T& u ){ return glm::cross(v,u);}
+// template<typename T>
+// inline void normalize (T& w){ w = glm::cross(w);}
 
-template<typename T, typename U>
-auto prod_escalar(const T& scalar, const U& vector) {
-    using ResultType = decltype(scalar * vector.x);
-    return ResultType(scalar * vector.x, scalar * vector.y, scalar * vector.z);
-}
+// template<typename T, typename U>
+// auto prod_escalar(const T& scalar, const U& vector) {
+//     using ResultType = decltype(scalar * vector.x);
+//     return ResultType(scalar * vector.x, scalar * vector.y, scalar * vector.z);
+// }
 
 }  // namespace rt3
 

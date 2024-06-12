@@ -41,13 +41,20 @@ const std::unique_ptr<Camera>&camera)
             
             float u = float(i) / (w - 1);
             float v = float(j) / (h - 1);
-            
-            Ray r = camera.get()->generate_ray(u,v);
 
-            r(2.0f);
-            Spectrum color = background.get()->sampleXYZ(Point2f{{
+            Spectrum color {100,100,100};        
+
+            
+            if ( background.get()->mapping_type == Background::mapping_t::screen )
+            {
+              color = background.get()->sampleXYZ(Point2f{{
               //std::ceil(float(i)/(w)), std::ceil(float(j)/(h))
               u,v}});
+            } else if (background.get()->mapping_type == Background::mapping_t::spherical )
+            {
+                Ray r = camera.get()->generate_ray(u,v);
+                color = background.get()->sampleXYZ(Ray{r}); // spherical mapping needs a ray.
+            }
 
             film.get()->add_sample(
               Point2f{static_cast<float>(i),static_cast<float>(j)}, 
@@ -93,7 +100,7 @@ Camera * API::make_camera(const std::string& name, const ParamSet& ps) {
     cam = create_camera_perspective(ps);
   }else if(name == "orthographic"){
     cam = create_camera_orthographic(ps);
-    std::cout << cam->look_at.length() << "teste camera \n";
+    //std::cout << cam->look_at.length() << "teste camera \n";
   }
 
   // Return the newly created camera.

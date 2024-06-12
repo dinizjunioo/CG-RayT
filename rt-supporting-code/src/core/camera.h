@@ -63,10 +63,19 @@ public:
 	Vector3f vup;
 	Point3f e;
 	Vector3f u,v,w;
-	int focal_distance;
+	float focal_distance;
 	arr_real_type screen_window;
+	std::array<real_type,4> viewPlane = {0,0,0,0};
+
 private:
-	void read_info_camera(const ParamSet& ps); 
+	void read_info_camera(const ParamSet& ps);
+
+  enum ViewPlaneDimensions_e {
+    left = 0,  //!< 
+    right,      //!< 
+    bottom,      //!<
+    top       //!< 
+  }; 
 };
 
 class PerspectiveCamera : public Camera {

@@ -4,6 +4,8 @@
 #include "rt3-base.h"
 #include "rt3.h"
 #include <list>
+#include "ray.h"
+//#include <concepts>
 namespace rt3 {
 // TODO: Create a virtual class Background and derive BackgroundColor,
 // BackgroundSphereImage, BackgroundSkyBoxImage.
@@ -30,7 +32,13 @@ public:
   Background(mapping_t mt = mapping_t::spherical) : mapping_type{ mt } { /* empty */ }
 
   virtual ~Background(){ /* empty */ };
-  [[nodiscard]] virtual Spectrum sampleXYZ(const Point2f& pixel_ndc) const = 0;
+  
+  //template<typename T>
+  //[[nodiscard]] requires std::convertible_to<T, rt3::Point2f> || std::convertible_to<T, Ray>
+  //virtual Spectrum sampleXYZ(const T& pixel_ndc) const = 0;
+  virtual Spectrum sampleXYZ(const Ray&) const = 0;
+  virtual Spectrum sampleXYZ(const Point2f&) const = 0;
+
 };
 
 class BackgroundColor : public Background {
@@ -72,12 +80,13 @@ public:
 
   friend Spectrum addColor(const Color24& );
   
-  [[nodiscard]] virtual Spectrum sampleXYZ(const Point2f& pixel_ndc) const override;
+  [[nodiscard]] virtual Spectrum sampleXYZ(const Point2f&) const override;
   
+  [[nodiscard]] virtual Spectrum sampleXYZ(const Ray&) const override;
   virtual ~BackgroundColor(){};
 };
 
 // factory pattern functions.
-BackgroundColor* create_color_background(const ParamSet& ps);
+BackgroundColor* create_color_background(const ParamSet&);
 }  // namespace rt3
 #endif

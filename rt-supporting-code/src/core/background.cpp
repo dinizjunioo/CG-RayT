@@ -8,17 +8,48 @@ namespace rt3 {
  * @param pixel_ndc Pixel position in NDC space,  in \f$[0:1]\f$.
  * \return The interpolated color.
  */
+
+// 
+// const Point2f& pixel_ndc
+
+/**
+ * @brief 
+ * 
+ * @param pixel_ndc
+ * como o tipo pode ser  const Ray& ray ou um const Point2f& pixel_ndc
+ * valor criar um generico T e chamar de pixel 
+ * @return Spectrum 
+ */
+
 Spectrum BackgroundColor::sampleXYZ(const Point2f& pixel_ndc) const 
 {
-  
-  
+  // if (mapping_type == mapping_t::screen)
+  // {
+  // }else if (mapping_type == mapping_t::spherical){
+  //   
+  // }
   // Interpolação linear horizontal entre os cantos inferiores (bl e br)
-  Spectrum bottom = rt3::lerp(corners[0], corners[3], pixel_ndc[0]);
+  Spectrum bottom = rt3::lerp(corners[bl], corners[br], pixel_ndc[0]);
   // Interpolação linear horizontal entre os cantos superiores (tl e tr)
-  Spectrum top    = rt3::lerp(corners[1], corners[2], pixel_ndc[0]);
-
+  Spectrum top    = rt3::lerp(corners[tl], corners[tr], pixel_ndc[0]);
   // Interpolação linear vertical entre as cores interpoladas horizontalmente
   return Spectrum{rt3::lerp(bottom, top, pixel_ndc[1])};
+}
+
+
+Spectrum BackgroundColor::sampleXYZ(const Ray& ray)  const
+{
+  // Vector3f dir = ray.direction();
+  auto t = 0.5f * (ray.direction().y + 1.0f);
+  // Interpolação linear entre as cores branco e azul
+  return lerp(Spectrum{255, 255, 255}, Spectrum{128, 179, 255}, t);
+ 
+
+  // // Normalize the direction vector
+  //   glm::vec3 dir = glm::normalize(ray.direction);
+
+  //   // Sample the spherical background
+  //   return sphericalMap(dir);
 }
 
 Spectrum addColor(const Color24& colour)
@@ -39,13 +70,12 @@ BackgroundColor * create_color_background(const ParamSet& ps)
 
   if(ps.find("color") != ps.end()){
     Color24 color_value = rt3::retrieve<Color24>(ps, "color", {0, 255, 0}); // Obtém os valores de cor, padrão verde
-    std::clog << "[" << color_value[0] << " - " << color_value[1] << " - " << color_value[2] << "]\n";
+    ///std::clog << "[" << color_value[0] << " - " << color_value[1] << " - " << color_value[2] << "]\n";
     // Converte os valores de cor para RGBColor
     colours.push_back(addColor(color_value));
 
   } else {
-    std::cout << "entrei nos bl's " << std::endl;
-     Color24 color_value = {0, 255, 0};
+    Color24 color_value = {0, 255, 0};
     if(ps.find("bl") != ps.end()){
       color_value = rt3::retrieve<Color24>(ps, "bl", {0, 255, 0}); // Obtém os valores de cor, padrão verde
       colours.push_back(addColor(color_value));
